@@ -9,4 +9,5 @@ public class ConditionDto {
     private Long id;
     private String text;
     private String practitionerName;
+    private String severity;
 }

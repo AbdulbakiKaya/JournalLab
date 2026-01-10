@@ -13,7 +13,6 @@ public class PatientDetailsDto {
     private String firstName;
     private String lastName;
     private Long userId;
-
     private List<Map<String, Object>> encounters;
     private List<Map<String, Object>> conditions;
 

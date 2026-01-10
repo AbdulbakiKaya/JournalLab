@@ -24,12 +24,27 @@ public class MessageService {
 
     public MessageDto sendMessage(Long senderId, SendMessageDto dto) {
 
+        if (dto.getPatientId() == null) {
+            throw new IllegalArgumentException("patientId must not be null");
+        }
+        if (dto.getText() == null || dto.getText().isBlank()) {
+            throw new IllegalArgumentException("text must not be empty");
+        }
+
         Patient patient = patientRepository.findById(dto.getPatientId())
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
+        Long receiverId = dto.getReceiverId();
+        if (receiverId == null) {
+            if (patient.getUser() == null) {
+                throw new IllegalArgumentException("patient has no user account");
+            }
+            receiverId = patient.getUser().getId();
+        }
+
         Message m = new Message();
         m.setSenderId(senderId);
-        m.setReceiverId(dto.getReceiverId());
+        m.setReceiverId(receiverId);
         m.setText(dto.getText());
         m.setPatient(patient);
 
@@ -58,30 +73,11 @@ public class MessageService {
         dto.setText(m.getText());
         dto.setTimestamp(m.getTimestamp());
 
-        // 🌟 NEW: senderName + receiverName
-        dto.setSenderName(
-                userRepository.findById(m.getSenderId())
-                        .map(u -> {
-                            if (u.getPatient() != null)
-                                return u.getPatient().getFirstName() + " " + u.getPatient().getLastName();
-                            if (u.getPractitioner() != null)
-                                return u.getPractitioner().getFirstName() + " " + u.getPractitioner().getLastName();
-                            return u.getUsername();
-                        })
-                        .orElse("Okänd")
-        );
+        User sender = safeFindUser(m.getSenderId());
+        User receiver = safeFindUser(m.getReceiverId());
 
-        dto.setReceiverName(
-                userRepository.findById(m.getReceiverId())
-                        .map(u -> {
-                            if (u.getPatient() != null)
-                                return u.getPatient().getFirstName() + " " + u.getPatient().getLastName();
-                            if (u.getPractitioner() != null)
-                                return u.getPractitioner().getFirstName() + " " + u.getPractitioner().getLastName();
-                            return u.getUsername();
-                        })
-                        .orElse("Okänd")
-        );
+        dto.setSenderName(getUserName(sender));
+        dto.setReceiverName(getUserName(receiver));
 
         return dto;
     }
@@ -101,4 +97,10 @@ public class MessageService {
 
         return user.getUsername();
     }
+
+    private User safeFindUser(Long id) {
+        if (id == null) return null;
+        return userRepository.findById(id).orElse(null);
+    }
+
 }

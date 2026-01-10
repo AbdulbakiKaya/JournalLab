@@ -30,8 +30,10 @@ public class ConditionService {
 
         Condition condition = new Condition();
         condition.setText(dto.getText());
+        condition.setSeverity(dto.getSeverity());
         condition.setPatient(patient);
         condition.setPractitioner(practitioner);
+
 
         Condition saved = conditionRepository.save(condition);
 
@@ -49,6 +51,7 @@ public class ConditionService {
         ConditionDto dto = new ConditionDto();
         dto.setId(condition.getId());
         dto.setText(condition.getText());
+        dto.setSeverity(condition.getSeverity());
         dto.setPractitionerName(
                 condition.getPractitioner().getFirstName() + " " + condition.getPractitioner().getLastName()
         );

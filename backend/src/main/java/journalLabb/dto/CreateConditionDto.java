@@ -7,5 +7,6 @@ import lombok.Setter;
 @Setter
 public class CreateConditionDto {
     private String text;
+    private String severity;
     private Long practitionerId;
 }

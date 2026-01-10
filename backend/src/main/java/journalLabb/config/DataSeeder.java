@@ -78,9 +78,9 @@ public class DataSeeder {
 
 
         // CONDITIONS (DIAGNOSER)
-        createCondition("Diabetes Typ 2", karl, doctor);
-        createCondition("Akut magont", sara, doctor);
-        createCondition("Kronisk migrän", omar, doctor);
+        createCondition("Diabetes Typ 2", "Måttlig" ,karl, doctor);
+        createCondition("Akut magont","Allvarlig" , sara, doctor);
+        createCondition("Kronisk migrän", "Mild" ,omar, doctor);
 
 
         // ENCOUNTERS (BESÖK)
@@ -122,9 +122,10 @@ public class DataSeeder {
         return p;
     }
 
-    private void createCondition(String text, Patient patient, Practitioner practitioner) {
+    private void createCondition(String text, String severity, Patient patient, Practitioner practitioner) {
         Condition c = new Condition();
         c.setText(text);
+        c.setSeverity(severity);
         c.setPatient(patient);
         c.setPractitioner(practitioner);
         conditionRepository.save(c);

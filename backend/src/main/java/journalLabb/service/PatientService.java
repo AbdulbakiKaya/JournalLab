@@ -6,6 +6,8 @@ import journalLabb.dto.PatientDto;
 import journalLabb.model.Patient;
 import journalLabb.repository.MessageRepository;
 import journalLabb.repository.PatientRepository;
+import journalLabb.repository.UserRepository;
+import journalLabb.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,8 @@ public class PatientService {
 
     private final PatientRepository patientRepository;
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
+
 
     public List<PatientDto> getAll() {
         return patientRepository.findAll()
@@ -44,6 +48,10 @@ public class PatientService {
                             md.setReceiverId(m.getReceiverId());
                             md.setText(m.getText());
                             md.setTimestamp(m.getTimestamp());
+                            User sender = safeFindUser(m.getSenderId());
+                            User receiver = safeFindUser(m.getReceiverId());
+                            md.setSenderName(getUserName(sender));
+                            md.setReceiverName(getUserName(receiver));
                             return md;
                         })
                         .toList()
@@ -60,6 +68,20 @@ public class PatientService {
         return toPatientDto(saved);
     }
 
+    private String getUserName(User user) {
+        if (user == null) return "Okänd";
+
+        if (user.getPractitioner() != null) {
+            return user.getPractitioner().getFirstName() + " " + user.getPractitioner().getLastName();
+        }
+
+        if (user.getPatient() != null) {
+            return user.getPatient().getFirstName() + " " + user.getPatient().getLastName();
+        }
+
+        return user.getUsername();
+    }
+
     private PatientDto toPatientDto(Patient p) {
         PatientDto dto = new PatientDto();
         dto.setId(p.getId());
@@ -68,9 +90,15 @@ public class PatientService {
         return dto;
     }
 
+    private User safeFindUser(Long id) {
+        if (id == null) return null;
+        return userRepository.findById(id).orElse(null);
+    }
+
     private PatientDetailsDto toPatientDetailsDto(Patient p) {
         PatientDetailsDto dto = new PatientDetailsDto();
         dto.setId(p.getId());
+        dto.setUserId(p.getUser() != null ? p.getUser().getId() : null);
         dto.setFirstName(p.getFirstName());
         dto.setLastName(p.getLastName());
 
