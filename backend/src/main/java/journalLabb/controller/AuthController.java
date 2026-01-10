@@ -19,13 +19,23 @@ public class AuthController {
     private final AuthService authService;
 
     @GetMapping("/me")
-    public String getMe(
+    public java.util.Map<String, Object> getMe(
             @AuthenticationPrincipal UserPrincipal principal,
             HttpServletResponse response
     ) {
+        // headers kan vara kvar men vi litar inte på dem i frontend
         response.addHeader("X-Role", principal.getRole().name());
         response.addHeader("X-UserId", principal.getUserId().toString());
-        return principal.getUsername();
+        if (principal.getPatientId() != null) {
+            response.addHeader("X-PatientId", principal.getPatientId().toString());
+        }
+
+        return java.util.Map.of(
+                "username", principal.getUsername(),
+                "role", principal.getRole().name(),
+                "userId", principal.getUserId(),
+                "patientId", principal.getPatientId()
+        );
     }
 
     @PostMapping("/register")

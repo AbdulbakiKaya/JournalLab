@@ -37,8 +37,14 @@ public class SecurityConfig {
                         // LOGIN & REGISTER OPEN
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        // doctor or staff only
-                        .requestMatchers("/api/patients/**").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/practitioners/doctors").permitAll()
+
+                        // List + skapa patient: bara DOCTOR/STAFF
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
+
+                        // Details: PATIENT får (men controller blockerar andra än sig själv)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/patients/*").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
                         .requestMatchers("/api/conditions/**").hasAnyRole("DOCTOR", "STAFF")
                         .requestMatchers("/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
 
