@@ -52,7 +52,6 @@ public class DataSeeder {
         loc2.setOrganization(org);
         locationRepository.save(loc2);
 
-
         // DOCTOR USER
         User doctorUser = new User();
         doctorUser.setUsername("doctor1");
@@ -70,42 +69,59 @@ public class DataSeeder {
         doctor.setOrganization(org);
         practitionerRepository.save(doctor);
 
+        // STAFF USER
+        User staffUser = new User();
+        staffUser.setUsername("staff1");
+        staffUser.setPasswordHash(passwordEncoder.encode("test123"));
+        staffUser.setRole(Role.STAFF);
+        userRepository.save(staffUser);
 
-        // PATIENTS
-        Patient karl = createPatient("Karl", "Johansson", "20000101-1234");
-        Patient sara = createPatient("Sara", "Lindholm", "19951212-5678");
-        Patient omar = createPatient("Omar", "Hassan", "19880909-4321");
+        // PRACTITIONER STAFF
+        Practitioner staff = new Practitioner();
+        staff.setFirstName("Anna");
+        staff.setLastName("Nurse");
+        staff.setLicenseNumber("STF001");
+        staff.setType(PractitionerType.STAFF);
+        staff.setUser(staffUser);
+        staff.setOrganization(org);
+        practitionerRepository.save(staff);
 
+        // PATIENTS (alla får assigned doctor)
+        Patient karl = createPatient("Karl", "Johansson", "20000101-1234", doctor);
+        Patient sara = createPatient("Sara", "Lindholm", "19951212-5678", doctor);
+        Patient omar = createPatient("Omar", "Hassan", "19880909-4321", doctor);
 
-        // CONDITIONS (DIAGNOSER)
-        createCondition("Diabetes Typ 2", "Måttlig" ,karl, doctor);
-        createCondition("Akut magont","Allvarlig" , sara, doctor);
-        createCondition("Kronisk migrän", "Mild" ,omar, doctor);
+        // CONDITIONS (DIAGNOSER) - endast DOCTOR
+        createCondition("Diabetes Typ 2", "Måttlig", karl, doctor);
+        createCondition("Akut magont", "Allvarlig", sara, doctor);
+        createCondition("Kronisk migrän", "Mild", omar, doctor);
 
-
-        // ENCOUNTERS (BESÖK)
-        Encounter enc1 = createEncounter(karl, doctor, loc1, "Första kontroll av diabetes.");
-        Encounter enc2 = createEncounter(sara, doctor, loc1, "Undersökning av magont.");
-        Encounter enc3 = createEncounter(omar, doctor, loc2, "Uppföljning av migrän.");
-
+        // ENCOUNTERS (BESÖK / JOURNALANTECKNINGAR)
+        createEncounter(karl, doctor, loc1, "Första kontroll av diabetes.");
+        createEncounter(sara, doctor, loc1, "Undersökning av magont.");
+        createEncounter(omar, doctor, loc2, "Uppföljning av migrän.");
 
         // OBSERVATIONS (MEDICAL NOTES)
         createObservation(karl, doctor, "Patienten har stabilt blodsocker, rekommenderar kostjustering.");
         createObservation(sara, doctor, "Misstänkt IBS. Informerat om kostvanor och vila.");
         createObservation(omar, doctor, "Fortsatt huvudvärk, ska testa ny medicinering.");
 
+        // MESSAGES – seed både DOCTOR- och STAFF-trådar
+        seedDoctorThread(karl, doctorUser, karl.getUser());
+        seedDoctorThread(sara, doctorUser, sara.getUser());
+        seedDoctorThread(omar, doctorUser, omar.getUser());
 
-        // MESSAGES – patient ↔ doctor
-        seedMessages(karl, doctorUser, karl.getUser());
-        seedMessages(sara, doctorUser, sara.getUser());
-        seedMessages(omar, doctorUser, omar.getUser());
+        // STAFF-tråden: staff initierar så patient kan svara (steg 7 policy A)
+        seedStaffThread(karl, staffUser, karl.getUser());
+        seedStaffThread(sara, staffUser, sara.getUser());
+        seedStaffThread(omar, staffUser, omar.getUser());
 
         System.out.println("=== SEED COMPLETE ===");
     }
 
     // ---------------- Helper Methods ----------------
 
-    private Patient createPatient(String first, String last, String pnr) {
+    private Patient createPatient(String first, String last, String pnr, Practitioner assignedDoctor) {
         User u = new User();
         u.setUsername(first.toLowerCase() + ".patient");
         u.setPasswordHash(passwordEncoder.encode("test123"));
@@ -117,17 +133,20 @@ public class DataSeeder {
         p.setLastName(last);
         p.setPersonalNumber(pnr);
         p.setUser(u);
-        patientRepository.save(p);
 
+        // ✅ NYTT: assigned doctor (viktigt för DOCTOR-tråd)
+        p.setAssignedDoctor(assignedDoctor);
+
+        patientRepository.save(p);
         return p;
     }
 
-    private void createCondition(String text, String severity, Patient patient, Practitioner practitioner) {
+    private void createCondition(String text, String severity, Patient patient, Practitioner practitionerDoctor) {
         Condition c = new Condition();
         c.setText(text);
         c.setSeverity(severity);
         c.setPatient(patient);
-        c.setPractitioner(practitioner);
+        c.setPractitioner(practitionerDoctor);
         conditionRepository.save(c);
     }
 
@@ -150,27 +169,43 @@ public class DataSeeder {
         observationRepository.save(o);
     }
 
-    private void seedMessages(Patient patient, User doctorUser, User patientUser) {
-
-        // PATIENT → DOCTOR
-        createMessage(patientUser.getId(), doctorUser.getId(), patient,
-                "Hej doktor, jag har en fråga angående min senaste behandling.");
+    private void seedDoctorThread(Patient patient, User doctorUser, User patientUser) {
+        // PATIENT → DOCTOR (i DOCTOR-tråd ska backend ändå routa till assigned doctor,
+        // men i seed sätter vi receiverId till doctorUser för att DB ska se logisk ut)
+        createMessage(patientUser.getId(), doctorUser.getId(), patient, MessageThreadType.DOCTOR,
+                "Hej doktor, jag har en fråga angående min senaste behandling.", LocalDateTime.now().minusHours(6));
 
         // DOCTOR → PATIENT
-        createMessage(doctorUser.getId(), patientUser.getId(), patient,
-                "Självklart! Vad undrar du?");
+        createMessage(doctorUser.getId(), patientUser.getId(), patient, MessageThreadType.DOCTOR,
+                "Självklart! Vad undrar du?", LocalDateTime.now().minusHours(5).minusMinutes(50));
 
         // PATIENT → DOCTOR
-        createMessage(patientUser.getId(), doctorUser.getId(), patient,
-                "Behöver jag ta medicinen varje dag eller bara vid behov?");
+        createMessage(patientUser.getId(), doctorUser.getId(), patient, MessageThreadType.DOCTOR,
+                "Behöver jag ta medicinen varje dag eller bara vid behov?", LocalDateTime.now().minusHours(5).minusMinutes(30));
     }
 
-    private void createMessage(Long sender, Long receiver, Patient patient, String text) {
+    private void seedStaffThread(Patient patient, User staffUser, User patientUser) {
+        // STAFF initierar (så patient kan svara i steg 7 policy A)
+        createMessage(staffUser.getId(), patientUser.getId(), patient, MessageThreadType.STAFF,
+                "Hej! Jag är från vården. Säg till om du behöver hjälp med bokning eller frågor.", LocalDateTime.now().minusHours(4));
+
+        // PATIENT svarar -> i din backend kommer detta routas till senaste staff automatiskt
+        createMessage(patientUser.getId(), staffUser.getId(), patient, MessageThreadType.STAFF,
+                "Tack! Jag undrar hur jag bokar om min tid.", LocalDateTime.now().minusHours(3).minusMinutes(45));
+
+        // STAFF svarar
+        createMessage(staffUser.getId(), patientUser.getId(), patient, MessageThreadType.STAFF,
+                "Du kan boka om via 1177 eller så hjälper vi dig här. Vilken tid passar dig?", LocalDateTime.now().minusHours(3).minusMinutes(30));
+    }
+
+    private void createMessage(Long sender, Long receiver, Patient patient, MessageThreadType threadType, String text, LocalDateTime timestamp) {
         Message m = new Message();
         m.setSenderId(sender);
         m.setReceiverId(receiver);
         m.setText(text);
         m.setPatient(patient);
+        m.setThreadType(threadType);
+        m.setTimestamp(timestamp != null ? timestamp : LocalDateTime.now());
         messageRepository.save(m);
     }
 }

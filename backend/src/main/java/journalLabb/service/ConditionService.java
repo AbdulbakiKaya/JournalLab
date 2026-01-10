@@ -21,11 +21,11 @@ public class ConditionService {
     private final PatientRepository patientRepository;
     private final PractitionerRepository practitionerRepository;
 
-    public ConditionDto createCondition(Long patientId, CreateConditionDto dto) {
+    public ConditionDto createCondition(Long patientId, Long practitionerId, CreateConditionDto dto) {
         Patient patient = patientRepository.findById(patientId)
                 .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-        Practitioner practitioner = practitionerRepository.findById(dto.getPractitionerId())
+        Practitioner practitioner = practitionerRepository.findById(practitionerId)
                 .orElseThrow(() -> new RuntimeException("Practitioner not found"));
 
         Condition condition = new Condition();
@@ -34,9 +34,7 @@ public class ConditionService {
         condition.setPatient(patient);
         condition.setPractitioner(practitioner);
 
-
         Condition saved = conditionRepository.save(condition);
-
         return toDto(saved);
     }
 

@@ -23,19 +23,22 @@ public class AuthController {
             @AuthenticationPrincipal UserPrincipal principal,
             HttpServletResponse response
     ) {
-        // headers kan vara kvar men vi litar inte på dem i frontend
         response.addHeader("X-Role", principal.getRole().name());
         response.addHeader("X-UserId", principal.getUserId().toString());
-        if (principal.getPatientId() != null) {
-            response.addHeader("X-PatientId", principal.getPatientId().toString());
+
+        Long patientId = principal.getPatientId(); // null för DOCTOR/STAFF är OK
+
+        if (patientId != null) {
+            response.addHeader("X-PatientId", patientId.toString());
         }
 
-        return java.util.Map.of(
-                "username", principal.getUsername(),
-                "role", principal.getRole().name(),
-                "userId", principal.getUserId(),
-                "patientId", principal.getPatientId()
-        );
+        java.util.Map<String, Object> map = new java.util.HashMap<>();
+        map.put("username", principal.getUsername());
+        map.put("role", principal.getRole().name());
+        map.put("userId", principal.getUserId());
+        map.put("patientId", patientId); // får vara null nu
+
+        return map;
     }
 
     @PostMapping("/register")

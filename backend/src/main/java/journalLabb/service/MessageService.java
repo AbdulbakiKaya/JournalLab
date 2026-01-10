@@ -31,7 +31,15 @@ public class MessageService {
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new RuntimeException("Sender user not found"));
 
-        MessageThreadType threadType = MessageThreadType.valueOf(dto.getThreadType().toUpperCase());
+        MessageThreadType threadType;
+        try {
+            threadType = MessageThreadType.valueOf(dto.getThreadType().toUpperCase());
+        } catch (Exception ex) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST,
+                    "Invalid threadType. Must be DOCTOR or STAFF"
+            );
+        }
 
         // -------- Access control --------
         if (sender.getRole() == Role.PATIENT) {
@@ -50,12 +58,18 @@ public class MessageService {
         if (sender.getRole() == Role.PATIENT) {
 
             if (threadType == MessageThreadType.DOCTOR) {
-                // STEG 6: Assigned doctor
+                // Assigned doctor
                 if (patient.getAssignedDoctor() == null) {
-                    throw new IllegalStateException("Patient has no assigned doctor");
+                    throw new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "Patient has no assigned doctor"
+                    );
                 }
                 if (patient.getAssignedDoctor().getUser() == null) {
-                    throw new IllegalStateException("Assigned doctor has no user account");
+                    throw new org.springframework.web.server.ResponseStatusException(
+                            org.springframework.http.HttpStatus.BAD_REQUEST,
+                            "Assigned doctor has no user account"
+                    );
                 }
                 receiverId = patient.getAssignedDoctor().getUser().getId();
 

@@ -20,6 +20,7 @@ public class UserPrincipal implements UserDetails {
     private final String password;
     private final Role role;                // <-- IMPORTANT: ENUM again
     private final String roleString;        // optional string
+    private final Long practitionerId;
 
     public UserPrincipal(User user) {
 
@@ -33,6 +34,7 @@ public class UserPrincipal implements UserDetails {
         this.password = user.getPasswordHash();
         this.role = user.getRole();               // <-- ENUM stored here
         this.roleString = user.getRole().name();  // also keep string
+        this.practitionerId = (user.getPractitioner() != null ? user.getPractitioner().getId() : null);
     }
 
     @Override

@@ -18,14 +18,16 @@ public class ConditionController {
 
     private final ConditionService conditionService;
 
-    @PostMapping("/patient/{patientId}")
     @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
+    @PostMapping("/patient/{patientId}")
     public ConditionDto create(
             @PathVariable Long patientId,
             @RequestBody CreateConditionDto dto,
             Authentication authentication
     ) {
-        return conditionService.createCondition(patientId, dto);
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        Long practitionerId = principal.getPractitionerId();
+        return conditionService.createCondition(patientId, practitionerId, dto);
     }
 
     @GetMapping("/patient/{patientId}")
