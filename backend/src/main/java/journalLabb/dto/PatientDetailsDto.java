@@ -15,6 +15,7 @@ public class PatientDetailsDto {
     private Long userId;
     private List<Map<String, Object>> encounters;
     private List<Map<String, Object>> conditions;
-
+    private Long assignedDoctorId;
+    private String assignedDoctorName;
     private List<MessageDto> messages;
 }

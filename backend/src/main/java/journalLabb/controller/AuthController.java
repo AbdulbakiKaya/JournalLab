@@ -36,8 +36,8 @@ public class AuthController {
         map.put("username", principal.getUsername());
         map.put("role", principal.getRole().name());
         map.put("userId", principal.getUserId());
-        map.put("patientId", patientId); // får vara null nu
-
+        map.put("patientId", patientId);
+        map.put("practitionerId", principal.getPractitionerId());
         return map;
     }
 

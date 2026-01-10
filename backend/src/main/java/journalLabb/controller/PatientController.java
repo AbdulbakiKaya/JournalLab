@@ -3,6 +3,7 @@ package journalLabb.controller;
 import journalLabb.dto.PatientDetailsDto;
 import journalLabb.dto.PatientDto;
 import journalLabb.security.UserPrincipal;
+import journalLabb.service.PatientAccessService;
 import journalLabb.service.PatientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import java.util.List;
 public class PatientController {
 
     private final PatientService patientService;
+    private final PatientAccessService patientAccessService;
 
     @GetMapping
     @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
@@ -45,5 +47,18 @@ public class PatientController {
     @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
     public PatientDto createPatient(@RequestBody PatientDto patientDto) {
         return patientService.create(patientDto);
+    }
+    @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
+    @PutMapping("/{patientId}/assigned-doctor/{doctorId}")
+    public void changeAssignedDoctor(
+            @PathVariable Long patientId,
+            @PathVariable Long doctorId,
+            Authentication authentication
+    ) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+
+        patientAccessService.assertDoctorCanWrite(principal, patientId);
+
+        patientService.changeAssignedDoctor(patientId, doctorId);
     }
 }

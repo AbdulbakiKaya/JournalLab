@@ -5,10 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PatientDto {
+public class PractitionerDto {
     private Long id;
     private String firstName;
     private String lastName;
-    private Long assignedDoctorId;
-    private String assignedDoctorName;
+    private String type;
 }

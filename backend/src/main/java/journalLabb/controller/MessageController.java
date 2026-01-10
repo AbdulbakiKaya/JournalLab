@@ -4,6 +4,7 @@ import journalLabb.dto.MessageDto;
 import journalLabb.dto.SendMessageDto;
 import journalLabb.security.UserPrincipal;
 import journalLabb.service.MessageService;
+import journalLabb.service.PatientAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import java.util.List;
 public class MessageController {
 
     private final MessageService messageService;
+    private final PatientAccessService patientAccessService;
 
     @PostMapping
     public MessageDto sendMessage(
@@ -23,6 +25,9 @@ public class MessageController {
             Authentication authentication
     ) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+
+        patientAccessService.assertDoctorCanWrite(principal, dto.getPatientId());
+
         return messageService.sendMessage(principal.getUserId(), dto);
     }
 

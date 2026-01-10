@@ -7,6 +7,7 @@ import journalLabb.model.Patient;
 import journalLabb.repository.MessageRepository;
 import journalLabb.repository.PatientRepository;
 import journalLabb.repository.UserRepository;
+import journalLabb.repository.PractitionerRepository;
 import journalLabb.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class PatientService {
     private final PatientRepository patientRepository;
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
-
+    private final PractitionerRepository practitionerRepository;
 
     public List<PatientDto> getAll() {
         return patientRepository.findAll()
@@ -67,6 +68,20 @@ public class PatientService {
         Patient saved = patientRepository.save(patient);
         return toPatientDto(saved);
     }
+    public void changeAssignedDoctor(Long patientId, Long doctorId) {
+        var patient = patientRepository.findById(patientId)
+                .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+        var doctor = practitionerRepository.findById(doctorId)
+                .orElseThrow(() -> new RuntimeException("Practitioner not found"));
+
+        if (doctor.getType() == null || !doctor.getType().name().equals("DOCTOR")) {
+            throw new RuntimeException("Selected practitioner is not a doctor");
+        }
+
+        patient.setAssignedDoctor(doctor);
+        patientRepository.save(patient);
+    }
 
     private String getUserName(User user) {
         if (user == null) return "Okänd";
@@ -102,6 +117,11 @@ public class PatientService {
         dto.setFirstName(p.getFirstName());
         dto.setLastName(p.getLastName());
 
+        // ✅ ASSIGNED DOCTOR
+        var ad = p.getAssignedDoctor();
+        dto.setAssignedDoctorId(ad != null ? ad.getId() : null);
+        dto.setAssignedDoctorName(ad != null ? (ad.getFirstName() + " " + ad.getLastName()) : "Ej tilldelad");
+
         // CONDITIONS
         dto.setConditions(
                 p.getConditions() == null ? List.of() :
@@ -111,6 +131,17 @@ public class PatientService {
                                     map.put("id", c.getId());
                                     map.put("text", c.getText());
                                     map.put("severity", c.getSeverity());
+
+                                    if (c.getPractitioner() != null) {
+                                        map.put("practitionerName",
+                                                c.getPractitioner().getFirstName() + " " + c.getPractitioner().getLastName());
+
+                                        map.put("practitionerType",
+                                                c.getPractitioner().getType() != null ? c.getPractitioner().getType().name() : "UNKNOWN");
+                                    } else {
+                                        map.put("practitionerName", "Okänd");
+                                        map.put("practitionerType", "UNKNOWN");
+                                    }
                                     return map;
                                 })
                                 .toList()
@@ -125,12 +156,21 @@ public class PatientService {
                                     map.put("id", e.getId());
                                     map.put("startTime", e.getStartTime());
                                     map.put("note", e.getNote());
+
+                                    if (e.getPractitioner() != null) {
+                                        map.put("practitionerName",
+                                                e.getPractitioner().getFirstName() + " " + e.getPractitioner().getLastName());
+
+                                        map.put("practitionerType",
+                                                e.getPractitioner().getType() != null ? e.getPractitioner().getType().name() : "UNKNOWN");
+                                    } else {
+                                        map.put("practitionerName", "Okänd");
+                                        map.put("practitionerType", "UNKNOWN");
+                                    }
                                     return map;
                                 })
                                 .toList()
         );
-
         return dto;
     }
-
 }

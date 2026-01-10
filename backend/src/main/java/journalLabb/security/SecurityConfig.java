@@ -14,6 +14,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableMethodSecurity
@@ -34,44 +35,40 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
-                        // LOGIN & REGISTER OPEN
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/auth/register").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/auth/me").authenticated()
+                        // ✅ CORS preflight måste vara öppen, annars får du 401 på OPTIONS
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/practitioners/doctors").permitAll()
+                        // LOGIN & REGISTER OPEN
+                        .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
+
+                        // Doctors-lista kräver inlogg (och @PreAuthorize tar rollerna)
+                        .requestMatchers(HttpMethod.GET, "/api/practitioners/doctors").authenticated()
 
                         // List + skapa patient: bara DOCTOR/STAFF
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(HttpMethod.POST, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
 
-                        // Details: PATIENT får (men controller blockerar andra än sig själv)
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/patients/*").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
+                        // Details
+                        .requestMatchers(HttpMethod.GET, "/api/patients/*").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
 
                         // CONDITIONS
-                        // DOCTOR får skapa/ändra diagnoser
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/conditions/**").hasRole("DOCTOR")
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT,  "/api/conditions/**").hasRole("DOCTOR")
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE,"/api/conditions/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/conditions/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.PUT,  "/api/conditions/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.DELETE,"/api/conditions/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.GET, "/api/conditions/**").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
 
-                        // Läsa diagnoser: PATIENT + DOCTOR + STAFF (men controller/service måste begränsa patient till sin egen)
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/conditions/**").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
+                        // ENCOUNTERS
+                        .requestMatchers(HttpMethod.POST, "/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(HttpMethod.PUT,  "/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(HttpMethod.DELETE,"/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(HttpMethod.GET, "/api/encounters/**").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
 
-                        // ENCOUNTERS (journalanteckningar)
-                        // Skapa/ändra journal: DOCTOR + STAFF
-                        .requestMatchers(org.springframework.http.HttpMethod.POST, "/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
-                        .requestMatchers(org.springframework.http.HttpMethod.PUT,  "/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
-                        .requestMatchers(org.springframework.http.HttpMethod.DELETE,"/api/encounters/**").hasAnyRole("DOCTOR", "STAFF")
-
-                        // Läsa journal: PATIENT + DOCTOR + STAFF (men controller/service måste begränsa patient till sin egen)
-                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/encounters/**").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
-
-                        // patient own data
                         .requestMatchers("/api/patient/me/**").hasRole("PATIENT")
 
                         // all messages requires user login
                         .requestMatchers("/api/messages/**").authenticated()
 
-                        // everything else requires auth
                         .anyRequest().authenticated()
                 )
 

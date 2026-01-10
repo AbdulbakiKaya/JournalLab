@@ -8,10 +8,12 @@ import journalLabb.model.Observation;
 import journalLabb.security.UserPrincipal;
 import journalLabb.service.ConditionService;
 import journalLabb.service.ObservationService;
+import journalLabb.service.PatientAccessService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
 
 
 @RestController
@@ -22,24 +24,40 @@ public class MedicalNoteController {
 
     private final ConditionService conditionService;
     private final ObservationService observationService;
+    private final PatientAccessService patientAccessService;
 
 
-    @PostMapping("/condition/{patientId}")
     @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
-    public ConditionDto createCondition(@PathVariable Long patientId,
-                                        @RequestBody CreateConditionDto dto,
-                                        Authentication authentication) {
+    @PostMapping("/condition/{patientId}")
+    public ConditionDto createCondition(
+            @PathVariable Long patientId,
+            @RequestBody CreateConditionDto dto,
+            Authentication authentication
+    ) {
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
 
-        return conditionService.createCondition(patientId, dto);
+        patientAccessService.assertDoctorCanWrite(principal, patientId);
+
+        Long practitionerId = principal.getPractitionerId();
+
+        return conditionService.createCondition(patientId, practitionerId, dto);
     }
 
 
 
-    @PostMapping("/observation")
     @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
-    public Observation createObservation(@RequestBody ObservationDto dto,
-                                         Authentication authentication) {
+    @PostMapping("/observation")
+    public Observation createObservation(
+            @RequestBody ObservationDto dto,
+            Authentication authentication
+    ) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        return observationService.create(principal.getUserId(), dto);
+
+        // Kräver att ObservationDto har getPatientId()
+        patientAccessService.assertDoctorCanWrite(principal, dto.getPatientId());
+
+        Long practitionerId = principal.getPractitionerId();
+
+        return observationService.create(practitionerId, dto);
     }
 }

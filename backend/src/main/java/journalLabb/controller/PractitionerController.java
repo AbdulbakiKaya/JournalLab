@@ -1,14 +1,13 @@
 package journalLabb.controller;
 
-import journalLabb.model.Practitioner;
+import journalLabb.dto.PractitionerDto;
 import journalLabb.model.PractitionerType;
 import journalLabb.repository.PractitionerRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/practitioners")
@@ -17,19 +16,19 @@ public class PractitionerController {
 
     private final PractitionerRepository practitionerRepository;
 
+    @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
     @GetMapping("/doctors")
-    public List<Map<String, Object>> getDoctors() {
+    public List<PractitionerDto> getDoctors() {
         return practitionerRepository.findByType(PractitionerType.DOCTOR)
                 .stream()
-                .map(this::toDoctorOption)
+                .map(p -> {
+                    PractitionerDto dto = new PractitionerDto();
+                    dto.setId(p.getId());
+                    dto.setFirstName(p.getFirstName());
+                    dto.setLastName(p.getLastName());
+                    dto.setType(p.getType() != null ? p.getType().name() : "UNKNOWN");
+                    return dto;
+                })
                 .toList();
-    }
-
-    private Map<String, Object> toDoctorOption(Practitioner p) {
-        Map<String, Object> m = new HashMap<>();
-        m.put("id", p.getId());
-        m.put("firstName", p.getFirstName());
-        m.put("lastName", p.getLastName());
-        return m;
     }
 }
