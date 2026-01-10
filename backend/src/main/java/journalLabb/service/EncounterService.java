@@ -36,6 +36,7 @@ public class EncounterService {
         e.setPractitioner(practitioner);
         e.setLocation(location);
         e.setStartTime(LocalDateTime.now());
+        e.setNote(dto.getNote());
 
         return encounterRepository.save(e);
     }
