@@ -39,7 +39,7 @@ public class PatientService {
 
         // Load messages
         dto.setMessages(
-                messageRepository.findByPatientId(id)
+                messageRepository.findByPatient_Id(id)
                         .stream()
                         .map(m -> {
                             MessageDto md = new MessageDto();

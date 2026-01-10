@@ -18,6 +18,9 @@ public class Patient {
     private String personalNumber;
     private String firstName;
     private String lastName;
+    @ManyToOne
+    @JoinColumn(name = "assigned_doctor_id")
+    private Practitioner assignedDoctor;
 
     @OneToOne
     @JoinColumn(name = "user_id")

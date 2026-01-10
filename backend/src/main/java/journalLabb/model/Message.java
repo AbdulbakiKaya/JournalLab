@@ -18,9 +18,9 @@ public class Message {
     private Long senderId;
     private Long receiverId;
     private String text;
-
-    private LocalDateTime timestamp = LocalDateTime.now();
-
+    private LocalDateTime timestamp;
     @ManyToOne
     private Patient patient;
+    @Enumerated(EnumType.STRING)
+    private MessageThreadType threadType;
 }

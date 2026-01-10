@@ -9,4 +9,5 @@ public class SendMessageDto {
     private Long patientId;
     private Long receiverId;
     private String text;
+    private String threadType;
 }

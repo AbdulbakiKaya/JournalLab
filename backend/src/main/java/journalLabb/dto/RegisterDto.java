@@ -15,4 +15,5 @@ public class RegisterDto {
     private String practitionerFirstName;
     private String practitionerLastName;
     private String licenseNumber;
+    private Long assignedDoctorPractitionerId;
 }

@@ -12,6 +12,7 @@ public class RegisterRequestDto {
     private String firstName;
     private String lastName;
     private String personalNumber; // om patient
+    private Long assignedDoctorPractitionerId;
 
     // Manual getters/setters (Lombok should work here, but add if errors persist)
     public String getUsername() { return username; }

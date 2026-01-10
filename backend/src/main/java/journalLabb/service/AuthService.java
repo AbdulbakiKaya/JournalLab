@@ -22,35 +22,49 @@ public class AuthService {
             throw new RuntimeException("Username already exists");
         }
 
+        Role role = Role.valueOf(dto.getRole().toUpperCase());
+
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
-        user.setRole(Role.valueOf(dto.getRole()));
+        user.setRole(role);
 
         userRepository.save(user);
 
         // CREATE PATIENT
-        if (dto.getRole().equals("PATIENT")) {
+        if (role == Role.PATIENT) {
+
+            if (dto.getAssignedDoctorPractitionerId() == null) {
+                throw new IllegalArgumentException("assignedDoctorPractitionerId is required for PATIENT");
+            }
+
+            Practitioner doctor = practitionerRepository.findById(dto.getAssignedDoctorPractitionerId())
+                    .orElseThrow(() -> new RuntimeException("Assigned doctor not found"));
+
+            if (doctor.getType() != PractitionerType.DOCTOR) {
+                throw new IllegalArgumentException("Assigned practitioner must be a DOCTOR");
+            }
+
             Patient p = new Patient();
             p.setFirstName(dto.getFirstName());
             p.setLastName(dto.getLastName());
             p.setPersonalNumber(dto.getPersonalNumber());
             p.setUser(user);
+
+            p.setAssignedDoctor(doctor);
+
             patientRepository.save(p);
         }
 
-        // CREATE PRACTITIONER (DOCTOR or STAFF)
-        if (dto.getRole().equals("DOCTOR") || dto.getRole().equals("STAFF")) {
+        if (role == Role.DOCTOR || role == Role.STAFF) {
+
             Practitioner pr = new Practitioner();
             pr.setFirstName(dto.getPractitionerFirstName());
             pr.setLastName(dto.getPractitionerLastName());
             pr.setLicenseNumber(dto.getLicenseNumber());
             pr.setUser(user);
-            pr.setType(
-                    dto.getRole().equals("DOCTOR")
-                            ? PractitionerType.DOCTOR
-                            : PractitionerType.STAFF
-            );
+            pr.setType(role == Role.DOCTOR ? PractitionerType.DOCTOR : PractitionerType.STAFF);
+
             practitionerRepository.save(pr);
         }
 

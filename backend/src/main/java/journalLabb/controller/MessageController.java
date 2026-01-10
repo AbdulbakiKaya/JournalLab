@@ -26,10 +26,14 @@ public class MessageController {
         return messageService.sendMessage(principal.getUserId(), dto);
     }
 
-    @GetMapping("/my")
-    public List<MessageDto> myMessages(Authentication authentication) {
+    @GetMapping("/patient/{patientId}/thread/{threadType}")
+    public List<MessageDto> getPatientMessagesByThread(
+            @PathVariable Long patientId,
+            @PathVariable String threadType,
+            Authentication authentication
+    ) {
         UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
-        return messageService.getMessagesForUser(principal.getUserId());
+        return messageService.getMessagesForPatientByThread(principal.getUserId(), patientId, threadType);
     }
 
     @GetMapping("/patient/{patientId}")
