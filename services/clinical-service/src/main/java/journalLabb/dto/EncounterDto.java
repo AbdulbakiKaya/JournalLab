@@ -1,0 +1,18 @@
+package journalLabb.dto;
+
+import lombok.Getter;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+public class EncounterDto {
+    private Long id;
+    private Long patientId;
+    private Long practitionerUserId;
+    private LocalDateTime startTime;
+    private LocalDateTime endTime;
+    private String note;
+    private String location;
+}
