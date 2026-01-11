@@ -5,6 +5,7 @@ import journalLabb.service.EncounterService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import journalLabb.dto.SetEncounterImageDto;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +23,6 @@ public class EncounterController {
         return encounterService.getEncountersForPatient(patientId);
     }
 
-    // KRAV: “vilka encounters de haft under en dag”
     @PreAuthorize("hasRole('DOCTOR')")
     @GetMapping("/doctor/{doctorUserId}/date/{date}")
     public List<EncounterDto> byDoctorAndDate(@PathVariable Long doctorUserId, @PathVariable String date) {
@@ -33,5 +33,11 @@ public class EncounterController {
     @PostMapping
     public EncounterDto create(@RequestBody EncounterDto dto) {
         return encounterService.createEncounter(dto);
+    }
+
+    @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
+    @PostMapping("/{encounterId}/image")
+    public EncounterDto setImage(@PathVariable Long encounterId, @RequestBody SetEncounterImageDto body) {
+        return encounterService.setEncounterImage(encounterId, body.getImageId());
     }
 }

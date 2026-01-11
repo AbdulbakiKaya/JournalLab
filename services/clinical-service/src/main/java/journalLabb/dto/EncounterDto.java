@@ -15,4 +15,5 @@ public class EncounterDto {
     private LocalDateTime endTime;
     private String note;
     private String location;
+    private String imageId;
 }

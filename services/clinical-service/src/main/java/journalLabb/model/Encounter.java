@@ -26,6 +26,7 @@ public class Encounter {
 
     private LocalDateTime endTime;
 
+    private String imageId;
     @Column(length = 4000)
     private String note;
 

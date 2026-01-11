@@ -26,19 +26,17 @@ public class DataSeeder {
     @PostConstruct
     public void seed() {
         if (userRepository.count() > 0) {
-            System.out.println("=== SEED ALREADY EXISTS (clinical-service) ===");
-            return;
+            System.out.println("=== SEED EXISTS (clinical-service) - ENSURING REQUIRED USERS ===");
         }
 
         System.out.println("=== SEEDING DATABASE (clinical-service) ===");
 
-        User doctor1 = createUser("doctor1", "test123", Role.DOCTOR);
-        createUser("staff1", "test123", Role.STAFF);
+        User doctor1 = ensureUser("doctor1", "test123", Role.DOCTOR);
+        ensureUser("staff1", "test123", Role.STAFF);
 
-        // (valfritt) patient-users för auth på clinical endpoints om du vill
-        createUser("karl.patient", "test123", Role.PATIENT);
-        createUser("sara.patient", "test123", Role.PATIENT);
-        createUser("omar.patient", "test123", Role.PATIENT);
+        ensureUser("karl.patient", "test123", Role.PATIENT);
+        ensureUser("sara.patient", "test123", Role.PATIENT);
+        ensureUser("omar.patient", "test123", Role.PATIENT);
 
         // Encounters: patientId 1..3, doctorUserId = doctor1.id (=1)
         createEncounter(1L, doctor1.getId(), "Första kontroll av diabetes.", "101A General Medicine");
@@ -80,5 +78,10 @@ public class DataSeeder {
         c.setSeverity(severity);
         c.setCreatedAt(LocalDateTime.now().minusDays(1));
         conditionRepository.save(c);
+    }
+
+    private User ensureUser(String username, String rawPassword, Role role) {
+        return userRepository.findByUsername(username)
+                .orElseGet(() -> createUser(username, rawPassword, role));
     }
 }

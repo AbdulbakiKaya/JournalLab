@@ -41,6 +41,16 @@ public class EncounterService {
         return toDto(encounterRepository.save(e));
     }
 
+    public EncounterDto setEncounterImage(Long encounterId, String imageId) {
+        Encounter encounter = encounterRepository.findById(encounterId)
+                .orElseThrow(() -> new RuntimeException("Encounter not found: " + encounterId));
+
+        encounter.setImageId(imageId);
+        encounterRepository.save(encounter);
+
+        return toDto(encounter);
+    }
+
     private EncounterDto toDto(Encounter e) {
         EncounterDto dto = new EncounterDto();
         dto.setId(e.getId());
@@ -50,6 +60,7 @@ public class EncounterService {
         dto.setEndTime(e.getEndTime());
         dto.setNote(e.getNote());
         dto.setLocation(e.getLocation());
+        dto.setImageId(e.getImageId());
         return dto;
     }
 }
