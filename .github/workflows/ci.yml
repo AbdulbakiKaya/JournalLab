@@ -1,0 +1,92 @@
+name: CI - Build & Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # =========================
+  # Java services (JUnit)
+  # =========================
+  test-java-services:
+    name: Test (JUnit) - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - demo/services/patient-service
+          - demo/services/clinical-service
+          - demo/services/messaging-service
+          - demo/services/search-service
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Verify pom.xml exists
+        run: |
+          test -f "${{ matrix.service }}/pom.xml"
+
+      - name: Build + Unit tests (JUnit)
+        working-directory: ${{ matrix.service }}
+        run: |
+          mvn -B -U clean test
+
+      # Valfritt men bra: skapa artefakter för felsökning om test fallerar
+      - name: Upload surefire reports (if failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports-${{ matrix.service }}
+          path: |
+            ${{ matrix.service }}/target/surefire-reports/**
+            ${{ matrix.service }}/target/failsafe-reports/**
+
+  # =========================
+  # Node services (optional but recommended)
+  # =========================
+  test-node-services:
+    name: Test (Node) - ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service:
+          - demo/services/image-service
+          # Lägg till frontend om du vill köra npm test/build i CI:
+          # - demo/frontend
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ${{ matrix.service }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ${{ matrix.service }}
+        run: npm ci
+
+      # Kör tester om du har dem. Om du INTE har tests ännu,
+      # byt till "npm run build" eller kommentera bort detta steg temporärt.
+      - name: Run tests
+        working-directory: ${{ matrix.service }}
+        run: npm test --if-present

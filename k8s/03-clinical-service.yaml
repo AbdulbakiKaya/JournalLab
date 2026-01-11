@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: clinical-service
+  namespace: journallabb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clinical-service
+  template:
+    metadata:
+      labels:
+        app: clinical-service
+    spec:
+      containers:
+        - name: clinical-service
+          image: clinical-service:local
+          ports:
+            - containerPort: 8082
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: docker
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/journal_clinical?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: root
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: root
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: update
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: clinical-service
+  namespace: journallabb
+spec:
+  selector:
+    app: clinical-service
+  ports:
+    - port: 8082
+      targetPort: 8082
