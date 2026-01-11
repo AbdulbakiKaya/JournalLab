@@ -26,6 +26,7 @@ public class PractitionerController {
                     dto.setId(p.getId());
                     dto.setFirstName(p.getFirstName());
                     dto.setLastName(p.getLastName());
+                    dto.setUserId(p.getUser() != null ? p.getUser().getId() : null);
                     dto.setType(p.getType() != null ? p.getType().name() : "UNKNOWN");
                     return dto;
                 })

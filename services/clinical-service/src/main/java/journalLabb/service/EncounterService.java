@@ -2,10 +2,12 @@ package journalLabb.service;
 
 import journalLabb.dto.EncounterDto;
 import journalLabb.model.Encounter;
+import journalLabb.model.User;
 import journalLabb.repository.EncounterRepository;
+import journalLabb.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
@@ -17,6 +19,7 @@ import java.util.List;
 public class EncounterService {
 
     private final EncounterRepository encounterRepository;
+    private final UserRepository userRepository;
 
     public List<EncounterDto> getEncountersForPatient(Long patientId) {
         return encounterRepository.findByPatientId(patientId).stream().map(this::toDto).toList();
@@ -54,28 +57,22 @@ public class EncounterService {
 
     private EncounterDto toDto(Encounter e) {
         EncounterDto dto = new EncounterDto();
-
         dto.setId(e.getId());
-        dto.setPatientId(e.getPatient().getId());
-
-        if (e.getPractitioner() != null) {
-            dto.setPractitionerUserId(e.getPractitioner().getUser().getId());
-
-            dto.setPractitionerName(
-                    e.getPractitioner().getFirstName() + " " +
-                            e.getPractitioner().getLastName()
-            );
-
-            dto.setPractitionerType(
-                    e.getPractitioner().getType().name()
-            );
-        }
-
+        dto.setPatientId(e.getPatientId());
+        dto.setPractitionerUserId(e.getPractitionerUserId());
         dto.setStartTime(e.getStartTime());
         dto.setEndTime(e.getEndTime());
         dto.setNote(e.getNote());
         dto.setLocation(e.getLocation());
         dto.setImageId(e.getImageId());
+
+        if (e.getPractitionerUserId() != null) {
+            User u = userRepository.findById(e.getPractitionerUserId()).orElse(null);
+            if (u != null) {
+                dto.setPractitionerType(u.getRole().name());   // "DOCTOR"
+                dto.setPractitionerName(u.getUsername());      // "doctor1"
+            }
+        }
 
         return dto;
     }

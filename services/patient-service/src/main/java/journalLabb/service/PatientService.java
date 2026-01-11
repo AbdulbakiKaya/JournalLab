@@ -76,6 +76,7 @@ public class PatientService {
         dto.setId(p.getId());
         dto.setFirstName(p.getFirstName());
         dto.setLastName(p.getLastName());
+        dto.setPersonalNumber(p.getPersonalNumber());
         return dto;
     }
 
