@@ -90,4 +90,4 @@ app.post("/images/:id/annotate", async (req, res) => {
 });
 
 const port = process.env.PORT || 8090;
-app.listen(port, () => console.log(`image-service listening on ${port}`));
+app.listen(port, () => console.log(`image-service listening on ${port}`));a

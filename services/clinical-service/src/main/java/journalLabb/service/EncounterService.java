@@ -5,6 +5,8 @@ import journalLabb.model.Encounter;
 import journalLabb.repository.EncounterRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,24 +45,38 @@ public class EncounterService {
 
     public EncounterDto setEncounterImage(Long encounterId, String imageId) {
         Encounter encounter = encounterRepository.findById(encounterId)
-                .orElseThrow(() -> new RuntimeException("Encounter not found: " + encounterId));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Encounter not found: " + encounterId));
 
         encounter.setImageId(imageId);
         encounterRepository.save(encounter);
-
         return toDto(encounter);
     }
 
     private EncounterDto toDto(Encounter e) {
         EncounterDto dto = new EncounterDto();
+
         dto.setId(e.getId());
-        dto.setPatientId(e.getPatientId());
-        dto.setPractitionerUserId(e.getPractitionerUserId());
+        dto.setPatientId(e.getPatient().getId());
+
+        if (e.getPractitioner() != null) {
+            dto.setPractitionerUserId(e.getPractitioner().getUser().getId());
+
+            dto.setPractitionerName(
+                    e.getPractitioner().getFirstName() + " " +
+                            e.getPractitioner().getLastName()
+            );
+
+            dto.setPractitionerType(
+                    e.getPractitioner().getType().name()
+            );
+        }
+
         dto.setStartTime(e.getStartTime());
         dto.setEndTime(e.getEndTime());
         dto.setNote(e.getNote());
         dto.setLocation(e.getLocation());
         dto.setImageId(e.getImageId());
+
         return dto;
     }
 }

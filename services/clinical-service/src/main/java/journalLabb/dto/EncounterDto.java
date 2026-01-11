@@ -13,6 +13,8 @@ public class EncounterDto {
     private Long practitionerUserId;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
+    private String practitionerName;
+    private String practitionerType;
     private String note;
     private String location;
     private String imageId;
