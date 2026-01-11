@@ -47,8 +47,8 @@ const ConditionForm: React.FC<Props> = ({ patientId, auth, onCreated }) => {
         style={{ marginBottom: 8 }}
       >
         <option value="Mild">Mild</option>
-        <option value="Moderate">Moderate</option>
-        <option value="Severe">Severe</option>
+        <option value="Måttlig">Måttlig</option>
+        <option value="Allvarlig">Allvarlig</option>
       </select>
 
       <button>Spara diagnos</button>

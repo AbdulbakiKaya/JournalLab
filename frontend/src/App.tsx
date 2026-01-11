@@ -9,42 +9,73 @@ function App() {
   const [auth, setAuth] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [userId, setUserId] = useState<number | null>(null);
+  const [patientId, setPatientId] = useState<number | null>(null);
+  const [practitionerId, setPractitionerId] = useState<number | null>(null);
+
   const [selectedPatient, setSelectedPatient] = useState<number | null>(null);
 
-  const logout = () => {
+  function handleLogout() {
     setAuth(null);
     setUsername(null);
     setRole(null);
+    setUserId(null);
+    setPatientId(null);
+    setPractitionerId(null);
     setSelectedPatient(null);
-  };
-
-  if (!auth) {
-    return (
-      <div style={{ padding: 20 }}>
-        <h1>Journal System</h1>
-        <LoginPage
-          onLogin={(token, user, role) => {
-            setAuth(token);
-            setUsername(user);
-            setRole(role);
-          }}
-        />
-        <RegisterPage />
-      </div>
-    );
   }
 
   return (
     <div>
-      <Navbar username={username} role={role} onLogout={logout} />
+      <Navbar username={username} role={role} onLogout={handleLogout} />
 
-      {!selectedPatient ? (
+      {!auth ? (
+        <div style={{ padding: 16 }}>
+          <LoginPage
+            onLogin={(token, user, r, uId, pId, pracId) => {
+              setAuth(token);
+              setUsername(user);
+              setRole(r);
+              setUserId(uId);
+              setPatientId(pId);
+              setPractitionerId(pracId);
+
+              // Om man loggar in som personal, nollställ ev. tidigare val
+              setSelectedPatient(null);
+            }}
+          />
+          <RegisterPage />
+        </div>
+      ) : role === "PATIENT" ? (
+        <div style={{ padding: 16 }}>
+          {patientId !== null ? (
+            <PatientDetailsPage
+              auth={auth}
+              patientId={patientId}
+              role={role}
+              userId={userId}
+              practitionerId={practitionerId}
+            />
+          ) : (
+            <p>PatientId saknas för inloggad patient.</p>
+          )}
+        </div>
+      ) : !selectedPatient ? (
         <PatientListPage auth={auth} onSelect={setSelectedPatient} />
       ) : (
-        <PatientDetailsPage
-          auth={auth}
-          patientId={selectedPatient}
-        />
+        <>
+          <button onClick={() => setSelectedPatient(null)} style={{ margin: 16 }}>
+            ← Byt patient
+          </button>
+
+          <PatientDetailsPage
+            auth={auth}
+            patientId={selectedPatient}
+            role={role}
+            userId={userId}
+            practitionerId={practitionerId}
+          />
+        </>
       )}
     </div>
   );

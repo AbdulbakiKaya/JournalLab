@@ -1,7 +1,14 @@
 import React, { useState } from "react";
 
 interface Props {
-  onLogin: (token: string, user: string, role: string) => void;
+  onLogin: (
+    token: string,
+    user: string,
+    role: string,
+    userId: number | null,
+    patientId: number | null,
+    practitionerId: number | null
+  ) => void;
 }
 
 export default function LoginPage({ onLogin }: Props) {
@@ -10,10 +17,13 @@ export default function LoginPage({ onLogin }: Props) {
   const [error, setError] = useState("");
 
   async function handleLogin() {
+    setError("");
     const token = btoa(username + ":" + password);
 
     const res = await fetch("http://localhost:8080/api/auth/me", {
-      headers: { "Authorization": "Basic " + token }
+      headers: {
+        Authorization: "Basic " + token,
+      },
     });
 
     if (!res.ok) {
@@ -21,18 +31,25 @@ export default function LoginPage({ onLogin }: Props) {
       return;
     }
 
-    const me = await res.text();
-    const role = res.headers.get("X-Role");
+    const data = await res.json();
 
-    onLogin(token, me, role || "UNKNOWN");
+    onLogin(
+      token,
+      data.username,
+      data.role,
+      data.userId ?? null,
+      data.patientId ?? null,
+      data.practitionerId ?? null
+    );
   }
 
   return (
     <div style={{ marginBottom: 20 }}>
       <h2>Login</h2>
 
-      <input placeholder="Användarnamn" onChange={(e) => setUsername(e.target.value)} /> <br/>
-      <input type="password" placeholder="Lösenord" onChange={(e) => setPassword(e.target.value)} /> <br/>
+      <input placeholder="Användarnamn" value={username} onChange={(e) => setUsername(e.target.value)} /> <br />
+      <input type="password" placeholder="Lösenord" value={password} onChange={(e) => setPassword(e.target.value)} />{" "}
+      <br />
 
       <button onClick={handleLogin}>Logga in</button>
 

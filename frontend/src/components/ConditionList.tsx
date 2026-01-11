@@ -1,25 +1,36 @@
 import React from "react";
 
-interface Props {
-  conditions: string[];
-}
+type Props = {
+  conditions: any[];
+};
 
-const ConditionList: React.FC<Props> = ({ conditions }) => {
+export default function ConditionList({ conditions }: Props) {
+  if (!conditions || conditions.length === 0) {
+    return (
+      <div style={{ marginTop: 16 }}>
+        <h3>Diagnoser</h3>
+        <p style={{ opacity: 0.7 }}>Inga diagnoser.</p>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ marginTop: 20 }}>
+    <div style={{ marginTop: 16 }}>
       <h3>Diagnoser</h3>
 
-      {conditions.length === 0 && <p>Inga diagnoser registrerade.</p>}
+      <ul style={{ paddingLeft: 18 }}>
+        {conditions.map((c: any) => {
+          const text = c.text ?? "";
+          const severity = c.severity ?? "";
+          const writerName = c.practitionerName ?? "Okänd";
 
-      <ul>
-        {conditions.map((c, i) => (
-          <li key={i}>
-            <b>{c.text}</b> – {c.severity}
-          </li>
-        ))}
+          return (
+            <li key={c.id} style={{ marginBottom: 8 }}>
+              {text} – {severity} – Doctor: {writerName}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
-};
-
-export default ConditionList;
+}

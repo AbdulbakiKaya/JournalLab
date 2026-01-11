@@ -1,8 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { getAllPatients } from "../api/patientApi";
-import ConditionForm from "./ConditionForm";
-import ConditionList from "./ConditionList";
-
 
 export default function PatientList({ auth, onSelect }: any) {
   const [patients, setPatients] = useState([]);

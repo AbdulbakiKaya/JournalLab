@@ -1,25 +1,37 @@
 import React from "react";
 
-interface Props {
+type Props = {
   encounters: any[];
-}
+};
 
-const EncounterList: React.FC<Props> = ({ encounters }) => {
+export default function EncounterList({ encounters }: Props) {
+  if (!encounters || encounters.length === 0) {
+    return (
+      <div style={{ marginTop: 16 }}>
+        <h3>Journalanteckningar</h3>
+        <p style={{ opacity: 0.7 }}>Inga journalanteckningar.</p>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ marginTop: 20 }}>
-      <h3>Encounters</h3>
+    <div style={{ marginTop: 16 }}>
+      <h3>Journalanteckningar</h3>
 
-      {encounters.length === 0 && <p>Inga journalanteckningar ännu.</p>}
+      <ul style={{ paddingLeft: 18 }}>
+        {encounters.map((e: any) => {
+          const time = e.startTime ?? "";
+          const note = e.note ?? "";
+          const writerType = e.practitionerType ?? "UNKNOWN";
+          const writerName = e.practitionerName ?? "Okänd";
 
-      <ul>
-        {encounters.map((e) => (
-          <li key={e.id}>
-            {new Date(e.startTime).toLocaleString()} – {e.note}
-          </li>
-        ))}
+          return (
+            <li key={e.id} style={{ marginBottom: 8 }}>
+              {time} – {note} – {writerType}: {writerName}
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
-};
-
-export default EncounterList;
+}

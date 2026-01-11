@@ -1,17 +1,14 @@
 import React from "react";
-import MessageThread from "../components/MessageThread";
 
-interface Props {
-  auth: string;
-}
-
-const MessagePage: React.FC<Props> = ({ auth }) => {
+export default function MessagePage() {
   return (
-    <div>
-      <h2>Messages</h2>
-      <MessageThread auth={auth} />
+    <div style={{ padding: 20 }}>
+      <h2>Meddelanden</h2>
+      <p>
+        Meddelanden visas nu direkt på respektive patients sida.
+        <br />
+        Välj en patient för att se och skicka meddelanden.
+      </p>
     </div>
   );
-};
-
-export default MessagePage;
+}
