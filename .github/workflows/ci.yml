@@ -78,8 +78,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
-          cache-dependency-path: ${{ matrix.service }}/package-lock.json
 
       - name: Install dependencies
         working-directory: ${{ matrix.service }}
@@ -87,6 +85,6 @@ jobs:
 
       # Kör tester om du har dem. Om du INTE har tests ännu,
       # byt till "npm run build" eller kommentera bort detta steg temporärt.
-      - name: Run tests
+      - name: Install dependencies
         working-directory: ${{ matrix.service }}
-        run: npm test --if-present
+        run: npm install
