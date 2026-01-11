@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/auth/me").authenticated()
 
                         // Doctors-lista kräver inlogg (och @PreAuthorize tar rollerna)
-                        .requestMatchers(HttpMethod.GET, "/api/practitioners/doctors").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/practitioners/doctors", "/api/practitioners/doctors/**").permitAll()
 
                         // List + skapa patient: bara DOCTOR/STAFF
                         .requestMatchers(HttpMethod.GET, "/api/patients").hasAnyRole("DOCTOR", "STAFF")
@@ -53,8 +53,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/patients/*").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
 
                         // CONDITIONS
-                        .requestMatchers(HttpMethod.POST, "/api/conditions/**").hasRole("DOCTOR")
-                        .requestMatchers(HttpMethod.PUT,  "/api/conditions/**").hasRole("DOCTOR")
+                        .requestMatchers(HttpMethod.POST, "/api/conditions/**").hasAnyRole("DOCTOR", "STAFF")
+                        .requestMatchers(HttpMethod.PUT,  "/api/conditions/**").hasAnyRole("DOCTOR", "STAFF")
                         .requestMatchers(HttpMethod.DELETE,"/api/conditions/**").hasRole("DOCTOR")
                         .requestMatchers(HttpMethod.GET, "/api/conditions/**").hasAnyRole("PATIENT", "DOCTOR", "STAFF")
 

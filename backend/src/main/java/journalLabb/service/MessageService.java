@@ -44,12 +44,22 @@ public class MessageService {
         // -------- Access control --------
         if (sender.getRole() == Role.PATIENT) {
             if (sender.getPatient() == null || !sender.getPatient().getId().equals(patient.getId())) {
-                throw new RuntimeException("Forbidden");
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN,
+                        "Forbidden"
+                );
             }
         } else if (sender.getRole() == Role.DOCTOR) {
-            if (threadType != MessageThreadType.DOCTOR) throw new RuntimeException("Forbidden");
+            if (threadType != MessageThreadType.DOCTOR) throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Forbidden"
+            );
         } else if (sender.getRole() == Role.STAFF) {
-            if (threadType != MessageThreadType.STAFF) throw new RuntimeException("Forbidden");
+            if (threadType != MessageThreadType.STAFF) throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Forbidden"
+            );
+
         }
 
         Long receiverId;
@@ -74,7 +84,7 @@ public class MessageService {
                 receiverId = patient.getAssignedDoctor().getUser().getId();
 
             } else {
-                // STEG 7: STAFF-tråd -> svara senaste STAFF som skrev
+                // STAFF-tråd -> svara senaste STAFF som skrev
                 receiverId = resolveLastStaffUserId(patient.getId());
 
                 // Policy: om ingen staff har skrivit än
@@ -142,12 +152,24 @@ public class MessageService {
         // - STAFF: får bara läsa STAFF-tråden
         if (requester.getRole() == Role.PATIENT) {
             if (requester.getPatient() == null || !requester.getPatient().getId().equals(patientId)) {
-                throw new RuntimeException("Forbidden");
+                throw new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN,
+                        "Forbidden"
+                );
+
             }
         } else if (requester.getRole() == Role.DOCTOR) {
-            if (threadType != MessageThreadType.DOCTOR) throw new RuntimeException("Forbidden");
+            if (threadType != MessageThreadType.DOCTOR) throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Forbidden"
+            );
+
         } else if (requester.getRole() == Role.STAFF) {
-            if (threadType != MessageThreadType.STAFF) throw new RuntimeException("Forbidden");
+            if (threadType != MessageThreadType.STAFF) throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Forbidden"
+            );
+
         }
 
         return messageRepository.findByPatient_IdAndThreadTypeOrderByTimestampAsc(patientId, threadType)

@@ -16,7 +16,7 @@ public class PractitionerController {
 
     private final PractitionerRepository practitionerRepository;
 
-    @PreAuthorize("hasAnyRole('DOCTOR','STAFF')")
+    @PreAuthorize("permitAll()")
     @GetMapping("/doctors")
     public List<PractitionerDto> getDoctors() {
         return practitionerRepository.findByType(PractitionerType.DOCTOR)
