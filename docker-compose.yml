@@ -38,5 +38,20 @@ services:
     ports:
       - "3000:3000"
 
+  messaging-service:
+    build: ./services/messaging-service
+    container_name: journal_messaging
+    restart: always
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/journal_messaging?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8083:8083"
+
 volumes:
   dbdata:
