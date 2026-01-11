@@ -81,10 +81,4 @@ jobs:
 
       - name: Install dependencies
         working-directory: ${{ matrix.service }}
-        run: npm ci
-
-      # Kör tester om du har dem. Om du INTE har tests ännu,
-      # byt till "npm run build" eller kommentera bort detta steg temporärt.
-      - name: Install dependencies
-        working-directory: ${{ matrix.service }}
         run: npm install
