@@ -4,7 +4,6 @@ import journalLabb.dto.PractitionerDto;
 import journalLabb.model.PractitionerType;
 import journalLabb.repository.PractitionerRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +15,6 @@ public class PractitionerController {
 
     private final PractitionerRepository practitionerRepository;
 
-    @PreAuthorize("permitAll()")
     @GetMapping("/doctors")
     public List<PractitionerDto> getDoctors() {
         return practitionerRepository.findByType(PractitionerType.DOCTOR)
@@ -26,8 +24,8 @@ public class PractitionerController {
                     dto.setId(p.getId());
                     dto.setFirstName(p.getFirstName());
                     dto.setLastName(p.getLastName());
-                    dto.setUserId(p.getUser() != null ? p.getUser().getId() : null);
-                    dto.setType(p.getType() != null ? p.getType().name() : "UNKNOWN");
+                    dto.setUserId(p.getUserId());
+                    dto.setType(p.getType().name());
                     return dto;
                 })
                 .toList();
